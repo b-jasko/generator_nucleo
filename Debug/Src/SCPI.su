@@ -1,8 +1,8 @@
-SCPI.c:215:17:Get_Message_Length	24	static
-SCPI.c:227:17:Message_To_Upper_Letters	24	static
-SCPI.c:244:17:Find_Separators	32	static
-SCPI.c:279:17:Cut_Message_Into_Pieces	56	static
-SCPI.c:347:17:Recognize_Piece_Of_Message	32	static
-SCPI.c:469:17:Recognize_Message	32	static
-SCPI.c:488:17:Do_The_Command	48	static
-SCPI.c:737:10:Process_SCPI_Message	392	static
+SCPI.c:216:17:Get_Message_Length	24	static
+SCPI.c:228:17:Message_To_Upper_Letters	24	static
+SCPI.c:245:17:Find_Separators	32	static
+SCPI.c:280:17:Cut_Message_Into_Pieces	56	static
+SCPI.c:348:17:Recognize_Piece_Of_Message	32	static
+SCPI.c:456:17:Recognize_Message	32	static
+SCPI.c:475:17:Do_The_Command	48	static
+SCPI.c:724:10:Process_SCPI_Message	392	static

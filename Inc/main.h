@@ -62,6 +62,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SDATA_Pin GPIO_PIN_7
 #define SDATA_GPIO_Port GPIOA
+#define MULTIPLEXER_S0_Pin GPIO_PIN_1
+#define MULTIPLEXER_S0_GPIO_Port GPIOB
+#define MULTIPLEXER_S1_Pin GPIO_PIN_2
+#define MULTIPLEXER_S1_GPIO_Port GPIOB
 #define SCLK_Pin GPIO_PIN_3
 #define SCLK_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */

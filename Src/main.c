@@ -43,6 +43,8 @@
 #define MAX_SEND_BUFFER_SIZE 				(512u)
 #define MAX_SCPI_ANSWER_BUFFER_SIZE 		(512u)
 
+#define PI 3.141592654
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,6 +58,7 @@ DAC_HandleTypeDef hdac1;
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart3;
 
@@ -78,8 +81,18 @@ uint32_t freq_reg_value;
 
 signal_type_T signal_type;
 signal_type_T setSignalType;
-
+uint32_t setSignalFreq;
 uint8_t setSignalFlag = 0;
+
+uint16_t dacStep;
+dac_signal_type_T dacSignalSelect;
+
+
+uint16_t gauss_value;
+uint16_t gauss_mean;
+uint16_t gauss_std_dev;
+
+multiplexer_select_T multiplexerChannelSelect;
 
 uint8_t receive_buffer[MAX_RECEIVE_BUFFER_SIZE] = "";
 uint8_t send_buffer[MAX_SEND_BUFFER_SIZE] = "";
@@ -97,6 +110,7 @@ static void MX_SPI1_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
@@ -104,10 +118,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 void HAL_Delay10Microseconds(uint32_t DelayMicroseconds);
-void GenerateAD8933Signal(signal_type_T, uint32_t);
+void GenerateAD9833Signal(signal_type_T, uint32_t);
 void SetSignalType(signal_type_T);
 void CalculateFrequency(uint32_t);
 void GeneratePWMSignal(uint8_t, uint32_t);
+void MultiplexerChannelSelect(multiplexer_select_T);
+
+double gaussrand(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -150,19 +167,25 @@ int main(void)
   MX_DAC1_Init();
   MX_TIM1_Init();
   MX_USART3_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_UART_Receive_IT(&huart3, &receiveByte, 1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_Base_Start_IT(&htim2);
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
 
   PWM_Freq = 10000;
   PWM_Duty = 25;
+  setSignalFreq = 10000;
+
+  gauss_mean = 2048;
+  gauss_std_dev = 500;
 
   GeneratePWMSignal(PWM_Duty, PWM_Freq);
-  GenerateAD8933Signal(SIN, 10000);
-
+  GenerateAD9833Signal(TRIANGLE, setSignalFreq);
+  MultiplexerChannelSelect(AD9833);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -170,16 +193,29 @@ int main(void)
   while (1)
   {
 	  if (setSignalFlag == 1) {
-		  GenerateAD8933Signal(setSignalType, 10000);
+		  if (multiplexerChannelSelect == AD9833)
+		  {
+			  GenerateAD9833Signal(setSignalType, setSignalFreq);
+			  MultiplexerChannelSelect(multiplexerChannelSelect);
+		  }
+		  else if (multiplexerChannelSelect == CA_CH1)
+		  {
+			  MultiplexerChannelSelect(multiplexerChannelSelect);
+		  }
+		  else if (multiplexerChannelSelect == PWM)
+		  {
+			  GeneratePWMSignal(PWM_Duty, PWM_Freq);
+			  MultiplexerChannelSelect(multiplexerChannelSelect);
+		  }
 		  setSignalFlag = 0;
+		}
+
+	  if (GAUSSIAN == dacSignalSelect)
+	  {
+		  gauss_value = gauss_std_dev * gaussrand() + gauss_mean;
+		  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, gauss_value);
 	  }
 
-	  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, i);
-	  i = i + 10;
-	  if (i == 4000)
-	  {
-		  i = 0;
-	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -411,6 +447,51 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 63;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 9;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -461,10 +542,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, MULTIPLEXER_S0_Pin|MULTIPLEXER_S1_Pin|GPIO_PIN_8, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PB8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  /*Configure GPIO pins : MULTIPLEXER_S0_Pin MULTIPLEXER_S1_Pin PB8 */
+  GPIO_InitStruct.Pin = MULTIPLEXER_S0_Pin|MULTIPLEXER_S1_Pin|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -514,7 +595,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_UART_Receive_IT(&huart3, &receiveByte, 1);
 }
 
-void GenerateAD8933Signal(signal_type_T signal_type, uint32_t freq)
+void GenerateAD9833Signal(signal_type_T signal_type, uint32_t freq)
 {
 	SetSignalType(signal_type);
 	CalculateFrequency(freq);
@@ -568,8 +649,12 @@ void SetSignalType(signal_type_T signal_type)
 void CalculateFrequency(uint32_t freq)
 {
 	freq_reg_value = (uint32_t)freq * 10.737;
-	freq0_reg_lsb[0] |= (freq_reg_value & ~(0xFFFC000));
-	freq0_reg_msb[0] |= (freq_reg_value & 0xFFFC000) >> 14;
+	freq0_reg_lsb[0] = (freq_reg_value & ~(0xFFFC000));
+	freq0_reg_lsb[0] |= 0x4000;
+	freq0_reg_lsb[0] &= ~(0x8000);
+	freq0_reg_msb[0] = (freq_reg_value & 0xFFFC000) >> 14;
+	freq0_reg_msb[0] |= 0x4000;
+	freq0_reg_msb[0] &= ~(0x8000);
 }
 
 void GeneratePWMSignal(uint8_t duty, uint32_t freq)
@@ -577,6 +662,65 @@ void GeneratePWMSignal(uint8_t duty, uint32_t freq)
 	PWM_Prescaler = (640000/freq) - 1;
 	TIM1->PSC = PWM_Prescaler;
 	TIM1->CCR3 = duty;
+}
+
+void MultiplexerChannelSelect(multiplexer_select_T channel)
+{
+	switch(channel)
+	{
+		case AD9833:
+		{
+			HAL_GPIO_WritePin(MULTIPLEXER_S0_GPIO_Port, MULTIPLEXER_S0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(MULTIPLEXER_S1_GPIO_Port, MULTIPLEXER_S1_Pin, GPIO_PIN_RESET);
+			break;
+		}
+		case CA_CH1:
+		{
+			HAL_GPIO_WritePin(MULTIPLEXER_S0_GPIO_Port, MULTIPLEXER_S0_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(MULTIPLEXER_S1_GPIO_Port, MULTIPLEXER_S1_Pin, GPIO_PIN_RESET);
+			break;
+		}
+		case PWM:
+		{
+			HAL_GPIO_WritePin(MULTIPLEXER_S0_GPIO_Port, MULTIPLEXER_S0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(MULTIPLEXER_S1_GPIO_Port, MULTIPLEXER_S1_Pin, GPIO_PIN_SET);
+			break;
+		}
+	}
+}
+
+double gaussrand()
+{
+    static double U, V;
+    static int phase = 0;
+    double Z;
+
+    if(phase == 0) {
+        U = (rand() + 1.) / (RAND_MAX + 2.);
+        V = rand() / (RAND_MAX + 1.);
+        Z = sqrt(-2 * log(U)) * sin(2 * PI * V);
+    } else
+        Z = sqrt(-2 * log(U)) * cos(2 * PI * V);
+
+    phase = 1 - phase;
+
+    return Z;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM2)
+	{
+		if(SAWTOOTH == dacSignalSelect)
+		{
+			  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, i);
+			  i = i + dacStep;
+			  if (i >= 4095)
+			  {
+				  i = 0;
+			  }
+		}
+	}
 }
 /* USER CODE END 4 */
 

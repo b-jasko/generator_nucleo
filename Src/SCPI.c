@@ -99,8 +99,7 @@ COMMANDS Commands_2[] = {
 		{"CURR?",				0x50},
 		{"CURRENT?",			0x50},
 		{"VOLT?",				0x51},
-		{"VOLTAGE?",			0x52},
-		{"FM",					0x53}
+		{"VOLTAGE?",			0x52}
 };
 
 COMMANDS Commands_3[] = {
@@ -135,71 +134,74 @@ COMMANDS Commands_3[] = {
 		{"ON",						0x7D},
 		{"OFF",						0x7C},
 		{"INT",						0x7D},
-		{"INTERNAL",				0x7D}
-};
-
-COMMANDS Commands_4[] = {
-		{"WAVE",						0xA0}
+		{"INTERNAL",				0x7D},
+		{"WAVE",					0x7E},
+		{"FREQ",					0x7F},
+		{"FREQENCY",				0x7F},
+		{"PWMDUTY",					0x80},
+		{"GAUSS",					0x81},
 };
 
 COMMANDS Ports[] = {
-		{"PC13",						0x80},
-		{"GPIO_3V3",					0x80},
-		{"PC14",						0x81},
-		{"GPIO_5V",						0x81},
-		{"PC15",						0x82},
-		{"GPIO_12V",					0x82},
-		{"PH0",							0x83},
-		{"GPIO_VOUT",					0x83},
-		{"PC0",							0x84},
-		{"ANI_3V3",						0x84},
-		{"PC1",							0x85},
-		{"ANI_5V",						0x85},
-		{"PC2",							0x86},
-		{"ANI_12V",						0x86},
-		{"PA0",							0x87},
-		{"Current_Measurement",			0x87},
-		{"PA3",							0x88},
-		{"OPAMP1_VOUT",					0x88},
-		{"PA5",							0x89},
-		{"PA5_NTC",						0x89},
-		{"PA6",							0x8A},
-		{"MEASURE_VOUT",				0x8A},
-		{"PC4",							0x8B},
-		{"PC4_NTC",						0x8B},
-		{"PC5",							0x8C},
-		{"PC5_NTC",						0x8C},
-		{"PB0",							0x8D},
-		{"OPAMP2_VOUT",					0x8D},
-		{"PB1",							0x8E},
-		{"PB1_NTC",						0x8E},
-		{"PB2",							0x8F},
-		{"RUN",							0x8F},
-		{"PB12",						0x90},
-		{"BUTTON_3V3",					0x90},
-		{"PB13",						0x91},
-		{"BUTTON_5V",					0x91},
-		{"PB14",						0x92},
-		{"BUTTON_12V",					0x92},
-		{"PB15",						0x93},
-		{"BUTTON_VOUT",					0x93},
-		{"PA10",						0x94},
-		{"PGOOD",						0x94},
-		{"PB5",							0x95},
-		{"ENC_S",						0x95},
-		{"PB6",							0x96},
-		{"ENC_B",						0x96},
-		{"PB7",							0x97},
-		{"ENC_A",						0x97},
-		{"SINE",						0x98},
-		{"TRI",							0x99},
-		{"TRIANGLE",					0x99},
-		{"SQU",							0x9A},
-		{"SQUARE",						0x9A},
-		{"GAU",							0x9B},
-		{"GAUSIAN",						0x9B},
-		{"RUP",							0x9C},
-		{"PWM",							0x9D},
+		{"PC13",						0x90},
+		{"GPIO_3V3",					0x90},
+		{"PC14",						0x91},
+		{"GPIO_5V",						0x91},
+		{"PC15",						0x92},
+		{"GPIO_12V",					0x92},
+		{"PH0",							0x93},
+		{"GPIO_VOUT",					0x93},
+		{"PC0",							0x94},
+		{"ANI_3V3",						0x94},
+		{"PC1",							0x95},
+		{"ANI_5V",						0x95},
+		{"PC2",							0x96},
+		{"ANI_12V",						0x96},
+		{"PA0",							0x97},
+		{"Current_Measurement",			0x97},
+		{"PA3",							0x98},
+		{"OPAMP1_VOUT",					0x98},
+		{"PA5",							0x99},
+		{"PA5_NTC",						0x99},
+		{"PA6",							0x9A},
+		{"MEASURE_VOUT",				0x9A},
+		{"PC4",							0x9B},
+		{"PC4_NTC",						0x9B},
+		{"PC5",							0x9C},
+		{"PC5_NTC",						0x9C},
+		{"PB0",							0x9D},
+		{"OPAMP2_VOUT",					0x9D},
+		{"PB1",							0x9E},
+		{"PB1_NTC",						0x9E},
+		{"PB2",							0x9F},
+		{"RUN",							0x9F},
+		{"PB12",						0xA0},
+		{"BUTTON_3V3",					0xA0},
+		{"PB13",						0xA1},
+		{"BUTTON_5V",					0xA1},
+		{"PB14",						0xA2},
+		{"BUTTON_12V",					0xA2},
+		{"PB15",						0xA3},
+		{"BUTTON_VOUT",					0xA3},
+		{"PA10",						0xA4},
+		{"PGOOD",						0xA4},
+		{"PB5",							0xA5},
+		{"ENC_S",						0xA5},
+		{"PB6",							0xA6},
+		{"ENC_B",						0xA6},
+		{"PB7",							0xA7},
+		{"ENC_A",						0xA7},
+		{"SINE",						0xA8},
+		{"TRI",							0xA9},
+		{"TRIANGLE",					0xA9},
+		{"SQU",							0xAA},
+		{"SQUARE",						0xAA},
+		{"GAU",							0xAB},
+		{"GAUSIAN",						0xAB},
+		{"RUP",							0xAC},
+		{"PWM",							0xAD},
+		{"MEAN",						0xAE},
+		{"STDDEV",						0xAF},
 };
 
 
@@ -207,7 +209,6 @@ const uint16_t MandatedCommands_LENGTH = sizeof(MandatedCommands) / sizeof(Manda
 const uint16_t Commands_1_LENGTH = sizeof(Commands_1) / sizeof(Commands_1[0]);
 const uint16_t Commands_2_LENGTH = sizeof(Commands_2) / sizeof(Commands_2[0]);
 const uint16_t Commands_3_LENGTH = sizeof(Commands_3) / sizeof(Commands_3[0]);
-const uint16_t Commands_4_LENGTH = sizeof(Commands_4) / sizeof(Commands_4[0]);
 const uint16_t Ports_LENGTH = sizeof(Ports) / sizeof(Ports[0]);
 
 
@@ -403,20 +404,6 @@ static uint16_t Recognize_Piece_Of_Message(char *Piece, uint16_t *foundCommand)
 				if (1 == FLAG_match)
 				{
 					*foundCommand = Commands_3[i].commandNumber;
-					break;
-				}
-			}
-		}
-
-		if (0 == FLAG_match)
-		{
-			for (i = 0; i < Commands_4_LENGTH; ++i)
-			{
-				FLAG_match = (strcmp(Piece, Commands_4[i].name) ? 0 : 1);
-
-				if (1 == FLAG_match)
-				{
-					*foundCommand = Commands_4[i].commandNumber;
 					break;
 				}
 			}

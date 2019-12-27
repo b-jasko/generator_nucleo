@@ -13,9 +13,9 @@ uint16_t Source_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][
 
 	switch (CommandNumbers[1])
 	{
-		case 0x53:		//FM
+		case 0x7D:		//INT, INTernal
 		{
-			errorCode = Source_FM_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
+			errorCode = Source_INT_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
 			break;
 		}
 		default:
@@ -28,15 +28,30 @@ uint16_t Source_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][
 	return errorCode;
 }
 
-uint16_t Source_FM_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
+uint16_t Source_INT_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
 {
 	ERROR_CODE errorCode = 0x00;
 
 	switch (CommandNumbers[2])
 	{
-		case 0x7D:		//INT, INTernal
+		case 0x7E:		//WAVE
 		{
-			errorCode = Source_FM_INT_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
+			errorCode = Source_INT_WAVE_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
+			break;
+		}
+		case 0x7F:		//FREQ, FREQuency
+		{
+			errorCode = Source_INT_FREQ_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
+			break;
+		}
+		case 0x80:		//PWMDUTY
+		{
+			errorCode = Source_INT_PWMDUTY_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
+			break;
+		}
+		case 0x81:		//GAUSS
+		{
+			errorCode = Source_INT_GAUSS_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
 			break;
 		}
 		default:
@@ -49,59 +64,54 @@ uint16_t Source_FM_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECE
 	return errorCode;
 }
 
-uint16_t Source_FM_INT_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
+
+uint16_t Source_INT_WAVE_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
 {
 	ERROR_CODE errorCode = 0x00;
 
 	switch (CommandNumbers[3])
 	{
-		case 0xA0:		//WAVE
-		{
-			errorCode = Source_FM_INT_WAVE_Command(tableWithMessagePieces, numberOfPieces, CommandNumbers, SCPI_buffer);
-			break;
-		}
-		default:
-		{
-			errorCode = COMMAND_NOT_RECOGNIZED;
-			break;
-		}
-	}
-
-	return errorCode;
-}
-
-uint16_t Source_FM_INT_WAVE_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
-{
-	ERROR_CODE errorCode = 0x00;
-
-	switch (CommandNumbers[4])
-	{
-		case 0x98:		//SINE
+		case 0xA8:		//SINE
 		{
 			setSignalType = SIN;
 			setSignalFlag = 1;
+			multiplexerChannelSelect = AD9833;
 			break;
 		}
-		case 0x99:		//TRIANGLE
+		case 0xA9:		//TRIANGLE
 		{
 			setSignalType = TRIANGLE;
 			setSignalFlag = 1;
+			multiplexerChannelSelect = AD9833;
 			break;
 		}
-		case 0x9A:		//SQUARE
+		case 0xAA:		//SQUARE
 		{
 			setSignalType = SQUARE;
 			setSignalFlag = 1;
+			multiplexerChannelSelect = AD9833;
 			break;
 		}
-
-		// case 0x123 	//FREQ
-		// {
-		// 	if CommandNumbers[5] == IS_A_NUMERIC_VALUE //0x00
-		// 	{
-		// 		set_freq(tableWithMessagePieces[5]);
-		// 	}
-		// }
+		case 0xAB:		//GAU, GAUSIAN
+		{
+			setSignalFlag = 1;
+			dacSignalSelect = GAUSSIAN;
+			multiplexerChannelSelect = CA_CH1;
+			break;
+		}
+		case 0xAC:		//RUP
+		{
+			setSignalFlag = 1;
+			dacSignalSelect = SAWTOOTH;
+			multiplexerChannelSelect = CA_CH1;
+			break;
+		}
+		case 0xAD:		//PWM
+		{
+			setSignalFlag = 1;
+			multiplexerChannelSelect = PWM;
+			break;
+		}
 
 		default:
 		{
@@ -112,6 +122,73 @@ uint16_t Source_FM_INT_WAVE_Command(const char tableWithMessagePieces[MAX_NUMBER
 
 	return errorCode;
 }
+
+uint16_t Source_INT_FREQ_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
+{
+	ERROR_CODE errorCode = 0x00;
+
+	if (0x00 == CommandNumbers[3])
+	{
+		switch(multiplexerChannelSelect)
+		{
+		case AD9833:
+			setSignalFlag = 1;
+			setSignalFreq = (int)atoi(tableWithMessagePieces[3]);
+			break;
+		case CA_CH1:
+			dacStep = (int)atoi(tableWithMessagePieces[3]) / 24.5;
+		case PWM:
+			setSignalFlag = 1;
+			PWM_Freq = (int)atoi(tableWithMessagePieces[3]);
+			break;
+		}
+		setSignalFlag = 1;
+	}
+	else
+	{
+		errorCode = COMMAND_NOT_RECOGNIZED;
+	}
+
+	return errorCode;
+}
+
+uint16_t Source_INT_PWMDUTY_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
+{
+	ERROR_CODE errorCode = 0x00;
+
+	if (0x00 == CommandNumbers[3])
+	{
+		PWM_Duty = (int)atoi(tableWithMessagePieces[3]);
+		setSignalFlag = 1;
+	}
+	else
+	{
+		errorCode = COMMAND_NOT_RECOGNIZED;
+	}
+
+	return errorCode;
+}
+
+uint16_t Source_INT_GAUSS_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)
+{
+	ERROR_CODE errorCode = 0x00;
+
+	if (0xAE == CommandNumbers[3]) //MEAN
+	{
+		gauss_mean = (int)atoi(tableWithMessagePieces[4]);
+	}
+	else if (0xAF == CommandNumbers[3]) //STDDEV
+	{
+		gauss_std_dev = (int)atoi(tableWithMessagePieces[4]);
+	}
+	else
+	{
+		errorCode = COMMAND_NOT_RECOGNIZED;
+	}
+
+	return errorCode;
+}
+
 
 
 uint16_t Measure_Command(const char tableWithMessagePieces[MAX_NUMBER_OF_PIECES][MAX_LENGTH_OF_A_PIECE], const uint8_t *numberOfPieces, const uint16_t *CommandNumbers, char *SCPI_buffer)

@@ -1,8 +1,10 @@
 Commands_Fun.c:10:10:Source_Command	32	static
-Commands_Fun.c:31:10:Source_FM_Command	32	static
-Commands_Fun.c:52:10:Source_FM_INT_Command	32	static
-Commands_Fun.c:73:10:Source_FM_INT_WAVE_Command	32	static
-Commands_Fun.c:108:10:Measure_Command	24	static
-Commands_Fun.c:168:10:Set_Output_Command	24	static
-Commands_Fun.c:297:10:Set_Voltage_Command	24	static
-Commands_Fun.c:318:10:Set_Command	24	static
+Commands_Fun.c:31:10:Source_INT_Command	32	static
+Commands_Fun.c:68:10:Source_INT_WAVE_Command	32	static
+Commands_Fun.c:126:10:Source_INT_FREQ_Command	40	static
+Commands_Fun.c:155:10:Source_INT_PWMDUTY_Command	32	static
+Commands_Fun.c:172:10:Source_INT_GAUSS_Command	32	static
+Commands_Fun.c:194:10:Measure_Command	24	static
+Commands_Fun.c:254:10:Set_Output_Command	24	static
+Commands_Fun.c:383:10:Set_Voltage_Command	24	static
+Commands_Fun.c:404:10:Set_Command	24	static
