@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -62,6 +63,11 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart3;
 
+osThreadId defaultTaskHandle;
+osThreadId FreeRTOS_1msHandle;
+osThreadId FreeRTOS_10msHandle;
+osThreadId FreeRTOS_100msHandle;
+osThreadId FreeRTOS_1000msHandle;
 /* USER CODE BEGIN PV */
 uint32_t Microseconds = 0;
 uint8_t PWM_Duty;
@@ -111,6 +117,12 @@ static void MX_DAC1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM2_Init(void);
+void StartDefaultTask(void const * argument);
+void RTOS_1ms(void const * argument);
+void RTOS_10ms(void const * argument);
+void RTOS_100ms(void const * argument);
+void RTOS_1000ms(void const * argument);
+
 /* USER CODE BEGIN PFP */
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
@@ -178,44 +190,67 @@ int main(void)
 
   PWM_Freq = 10000;
   PWM_Duty = 25;
-  setSignalFreq = 10000;
+  setSignalFreq = 5000;
 
   gauss_mean = 2048;
   gauss_std_dev = 500;
 
   GeneratePWMSignal(PWM_Duty, PWM_Freq);
-  GenerateAD9833Signal(TRIANGLE, setSignalFreq);
+  GenerateAD9833Signal(SIN, setSignalFreq);
   MultiplexerChannelSelect(AD9833);
   /* USER CODE END 2 */
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* definition and creation of FreeRTOS_1ms */
+  osThreadDef(FreeRTOS_1ms, RTOS_1ms, osPriorityNormal, 0, 128);
+  FreeRTOS_1msHandle = osThreadCreate(osThread(FreeRTOS_1ms), NULL);
+
+  /* definition and creation of FreeRTOS_10ms */
+  osThreadDef(FreeRTOS_10ms, RTOS_10ms, osPriorityNormal, 0, 128);
+  FreeRTOS_10msHandle = osThreadCreate(osThread(FreeRTOS_10ms), NULL);
+
+  /* definition and creation of FreeRTOS_100ms */
+  osThreadDef(FreeRTOS_100ms, RTOS_100ms, osPriorityNormal, 0, 128);
+  FreeRTOS_100msHandle = osThreadCreate(osThread(FreeRTOS_100ms), NULL);
+
+  /* definition and creation of FreeRTOS_1000ms */
+  osThreadDef(FreeRTOS_1000ms, RTOS_1000ms, osPriorityNormal, 0, 128);
+  FreeRTOS_1000msHandle = osThreadCreate(osThread(FreeRTOS_1000ms), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+  
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (setSignalFlag == 1) {
-		  if (multiplexerChannelSelect == AD9833)
-		  {
-			  GenerateAD9833Signal(setSignalType, setSignalFreq);
-			  MultiplexerChannelSelect(multiplexerChannelSelect);
-		  }
-		  else if (multiplexerChannelSelect == CA_CH1)
-		  {
-			  MultiplexerChannelSelect(multiplexerChannelSelect);
-		  }
-		  else if (multiplexerChannelSelect == PWM)
-		  {
-			  GeneratePWMSignal(PWM_Duty, PWM_Freq);
-			  MultiplexerChannelSelect(multiplexerChannelSelect);
-		  }
-		  setSignalFlag = 0;
-		}
-
-	  if (GAUSSIAN == dacSignalSelect)
-	  {
-		  gauss_value = gauss_std_dev * gaussrand() + gauss_mean;
-		  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, gauss_value);
-	  }
-
+	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -723,6 +758,138 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 }
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used 
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+    
+    
+    
+    
+    
+    
+    
+
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  if (setSignalFlag == 1) {
+	  		  if (multiplexerChannelSelect == AD9833)
+	  		  {
+	  			  GenerateAD9833Signal(setSignalType, setSignalFreq);
+	  			  MultiplexerChannelSelect(multiplexerChannelSelect);
+	  		  }
+	  		  else if (multiplexerChannelSelect == CA_CH1)
+	  		  {
+	  			  MultiplexerChannelSelect(multiplexerChannelSelect);
+	  		  }
+	  		  else if (multiplexerChannelSelect == PWM)
+	  		  {
+	  			  GeneratePWMSignal(PWM_Duty, PWM_Freq);
+	  			  MultiplexerChannelSelect(multiplexerChannelSelect);
+	  		  }
+	  		  setSignalFlag = 0;
+	  		}
+
+	  	  if (GAUSSIAN == dacSignalSelect)
+	  	  {
+	  		  gauss_value = gauss_std_dev * gaussrand() + gauss_mean;
+	  		  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, gauss_value);
+	  	  }
+  }
+  /* USER CODE END 5 */ 
+}
+
+/* USER CODE BEGIN Header_RTOS_1ms */
+/**
+* @brief Function implementing the FreeRTOS_1ms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_RTOS_1ms */
+void RTOS_1ms(void const * argument)
+{
+  /* USER CODE BEGIN RTOS_1ms */
+
+	const TickType_t xFrequency = 1;
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  vTaskDelay( xFrequency / portTICK_RATE_MS );
+  }
+  /* USER CODE END RTOS_1ms */
+}
+
+/* USER CODE BEGIN Header_RTOS_10ms */
+/**
+* @brief Function implementing the FreeRTOS_10ms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_RTOS_10ms */
+void RTOS_10ms(void const * argument)
+{
+  /* USER CODE BEGIN RTOS_10ms */
+
+	const TickType_t xFrequency = 10;
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  vTaskDelay( xFrequency / portTICK_RATE_MS );
+  }
+  /* USER CODE END RTOS_10ms */
+}
+
+/* USER CODE BEGIN Header_RTOS_100ms */
+/**
+* @brief Function implementing the FreeRTOS_100ms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_RTOS_100ms */
+void RTOS_100ms(void const * argument)
+{
+  /* USER CODE BEGIN RTOS_100ms */
+
+	const TickType_t xFrequency = 100;
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  vTaskDelay( xFrequency / portTICK_RATE_MS );
+  }
+  /* USER CODE END RTOS_100ms */
+}
+
+/* USER CODE BEGIN Header_RTOS_1000ms */
+/**
+* @brief Function implementing the FreeRTOS_1000ms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_RTOS_1000ms */
+void RTOS_1000ms(void const * argument)
+{
+  /* USER CODE BEGIN RTOS_1000ms */
+
+	const TickType_t xFrequency = 1000;
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  vTaskDelay( xFrequency / portTICK_RATE_MS );
+  }
+  /* USER CODE END RTOS_1000ms */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
